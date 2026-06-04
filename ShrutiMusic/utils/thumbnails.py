@@ -288,6 +288,29 @@ async def gen_thumb(videoid: str):
         art = base_img.resize((art_size, art_size), Image.LANCZOS)
         art.putalpha(mask)
         
+        # --- SHADOW LIGHTING / AMBIENT GLOW EFFECT (ADDED BY HELP) ---
+        # Yeh block album art ke peeche ek bada soft glow effect aur dark shadow lighting overlay add karega.
+        glow_padding = 160
+        glow_canvas_size = art_size + glow_padding
+        glow_layer = Image.new("RGBA", (glow_canvas_size, glow_canvas_size), (0, 0, 0, 0))
+        glow_draw = ImageDraw.Draw(glow_layer)
+        
+        # Soft Glow background circular mask bana rhe hain
+        glow_draw.ellipse(
+            [40, 40, glow_canvas_size - 40, glow_canvas_size - 40],
+            fill=(*accent_color, 140)  # Accent color ke sath dynamic glow banega
+        )
+        # Heavy blur apply kar rhe hain taaki lightning phel sake smooth tarike se
+        glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(60))
+        
+        # Canvas par shadow lighting ko paste kar rhe hain
+        canvas.paste(
+            glow_layer, 
+            (art_x - (glow_padding // 2), art_y - (glow_padding // 2)), 
+            glow_layer
+        )
+        # -------------------------------------------------------------
+        
         if random.choice([True, False]):
             add_glow_ring(canvas, art_x, art_y, art_size, accent_color, random.randint(8, 15))
         
