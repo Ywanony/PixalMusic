@@ -35,9 +35,9 @@ from ShrutiMusic import app
 import math
 
 # =====================================================================
-# CHHOTA CHARACTER: YAHAN APNI IMAGE KI LINK PASTE KAREIN
+# CHHOTA CHARACTER: YAHAN AAPKI IMAGE KI LINK PEHLE SE SET HAI BHAI
 # =====================================================================
-CHARACTER_IMAGE_URL = "https://files.catbox.moe/nxkriz.png"  # <-- Is "" ke andar apni link daal dena bhai
+CHARACTER_IMAGE_URL = "https://files.catbox.moe/nxkriz.png"  
 # =====================================================================
 
 CACHE_DIR = Path("cache")
@@ -392,40 +392,31 @@ async def gen_thumb(videoid: str):
             f"{meta_labels[2]} {channel}" if meta_labels[2] else f"{channel}"
         ]
         
-        last_meta_y = meta_y
         for idx, meta in enumerate(meta_items):
             y = meta_y + (idx * line_spacing)
             draw.text((info_x + 1, y + 1), meta, fill=(0, 0, 0, 140), font=meta_font)
             draw.text((info_x, y), meta, fill=(220, 220, 230, 255), font=meta_font)
-            last_meta_y = y
 
-        # --- CHHOTA CHARACTER PLACEHOLDER BLOCK (ADDED RESPONSIBLY) ---
-        # Yeh block niche text ke paas character paste karega bina layout ko disturb kiye.
+        # --- RE-POSITIONED CHARACTER IMAGING BLOCK ---
         if char_img:
-            # Character ka ek uniform aur aesthetic size fix kar rahe hain (Height: 160px)
+            # Safe image resizing
             char_aspect = char_img.width / char_img.height
-            char_h = 160
+            char_h = 210  # Size thoda bada kiya taaki clear dikhe
             char_w = int(char_h * char_aspect)
             resized_char = char_img.resize((char_w, char_h), Image.LANCZOS)
             
-            # Text layout ke alignment ke hisab se position auto-adjust hogi
-            if layout['text_align'] == 'right':
-                # Agar text right me hai, toh text block ke niche-right corner me aayega
-                char_x = CANVAS_W - char_w - 60
-            else:
-                # Agar text left me hai, toh text block ke niche-left corner me aayega
-                char_x = info_x
-                
-            char_y = min(last_meta_y + 60, CANVAS_H - char_h - 25)
+            # Perfect position: Hamesha bottom-right side me blank area me dhyan khichega
+            char_x = CANVAS_W - char_w - 50
+            char_y = CANVAS_H - char_h - 40
             
-            # Soft Drop Shadow for the Character to look aesthetic
+            # Light Shadow glow taaki background me mix na ho
             char_shadow = Image.new("RGBA", resized_char.size, (0, 0, 0, 0))
             char_shadow_mask = resized_char.split()[3]
-            char_shadow.paste((0, 0, 0, 120), (0, 0), mask=char_shadow_mask)
-            char_shadow = char_shadow.filter(ImageFilter.GaussianBlur(6))
-            canvas.paste(char_shadow, (char_x + 4, char_y + 4), char_shadow)
+            char_shadow.paste((0, 0, 0, 150), (0, 0), mask=char_shadow_mask)
+            char_shadow = char_shadow.filter(ImageFilter.GaussianBlur(8))
+            canvas.paste(char_shadow, (char_x + 5, char_y + 5), char_shadow)
             
-            # Pasting the actual character image
+            # Final Paste
             canvas.paste(resized_char, (char_x, char_y), resized_char)
         # -------------------------------------------------------------
         
