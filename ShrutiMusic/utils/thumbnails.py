@@ -27,11 +27,18 @@ import random
 import aiohttp
 import aiofiles
 import traceback
+import io
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
 from py_yt import VideosSearch
 from ShrutiMusic import app
 import math
+
+# =====================================================================
+# CHHOTA CHARACTER: YAHAN APNI IMAGE KI LINK PASTE KAREIN
+# =====================================================================
+CHARACTER_IMAGE_URL = "https://files.catbox.moe/nxkriz.png"  # <-- Is "" ke andar apni link daal dena bhai
+# =====================================================================
 
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
@@ -228,6 +235,7 @@ def add_glow_ring(canvas, x, y, size, color, blur_amount):
 async def gen_thumb(videoid: str):
     url = f"https://www.youtube.com/watch?v={videoid}"
     thumb_path = None
+    char_img = None
     
     try:
         results = VideosSearch(url, limit=1)
@@ -246,8 +254,15 @@ async def gen_thumb(videoid: str):
                         thumb_path = CACHE_DIR / f"thumb{videoid}.png"
                         async with aiofiles.open(thumb_path, "wb") as f:
                             await f.write(await resp.read())
-        except:
-            pass
+                
+                # --- CHARACTER IMAGE DOWNLOAD (SAFE ADDITION) ---
+                if CHARACTER_IMAGE_URL and CHARACTER_IMAGE_URL.strip() != "" and "example.com" not in CHARACTER_IMAGE_URL:
+                    async with session.get(CHARACTER_IMAGE_URL) as char_resp:
+                        if char_resp.status == 200:
+                            char_data = await char_resp.read()
+                            char_img = Image.open(io.BytesIO(char_data)).convert("RGBA")
+        except Exception as char_err:
+            print(f"[Character Download Error] {char_err}")
 
         if thumb_path and thumb_path.exists():
             base_img = Image.open(thumb_path).convert("RGBA")
@@ -288,28 +303,18 @@ async def gen_thumb(videoid: str):
         art = base_img.resize((art_size, art_size), Image.LANCZOS)
         art.putalpha(mask)
         
-        # --- SHADOW LIGHTING / AMBIENT GLOW EFFECT (ADDED BY HELP) ---
-        # Yeh block album art ke peeche ek bada soft glow effect aur dark shadow lighting overlay add karega.
+        # --- SHADOW LIGHTING / AMBIENT GLOW EFFECT ---
         glow_padding = 160
         glow_canvas_size = art_size + glow_padding
         glow_layer = Image.new("RGBA", (glow_canvas_size, glow_canvas_size), (0, 0, 0, 0))
         glow_draw = ImageDraw.Draw(glow_layer)
         
-        # Soft Glow background circular mask bana rhe hain
         glow_draw.ellipse(
             [40, 40, glow_canvas_size - 40, glow_canvas_size - 40],
-            fill=(*accent_color, 140)  # Accent color ke sath dynamic glow banega
+            fill=(*accent_color, 140)
         )
-        # Heavy blur apply kar rhe hain taaki lightning phel sake smooth tarike se
         glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(60))
-        
-        # Canvas par shadow lighting ko paste kar rhe hain
-        canvas.paste(
-            glow_layer, 
-            (art_x - (glow_padding // 2), art_y - (glow_padding // 2)), 
-            glow_layer
-        )
-        # -------------------------------------------------------------
+        canvas.paste(glow_layer, (art_x - (glow_padding // 2), art_y - (glow_padding // 2)), glow_layer)
         
         if random.choice([True, False]):
             add_glow_ring(canvas, art_x, art_y, art_size, accent_color, random.randint(8, 15))
@@ -387,10 +392,42 @@ async def gen_thumb(videoid: str):
             f"{meta_labels[2]} {channel}" if meta_labels[2] else f"{channel}"
         ]
         
+        last_meta_y = meta_y
         for idx, meta in enumerate(meta_items):
             y = meta_y + (idx * line_spacing)
             draw.text((info_x + 1, y + 1), meta, fill=(0, 0, 0, 140), font=meta_font)
             draw.text((info_x, y), meta, fill=(220, 220, 230, 255), font=meta_font)
+            last_meta_y = y
+
+        # --- CHHOTA CHARACTER PLACEHOLDER BLOCK (ADDED RESPONSIBLY) ---
+        # Yeh block niche text ke paas character paste karega bina layout ko disturb kiye.
+        if char_img:
+            # Character ka ek uniform aur aesthetic size fix kar rahe hain (Height: 160px)
+            char_aspect = char_img.width / char_img.height
+            char_h = 160
+            char_w = int(char_h * char_aspect)
+            resized_char = char_img.resize((char_w, char_h), Image.LANCZOS)
+            
+            # Text layout ke alignment ke hisab se position auto-adjust hogi
+            if layout['text_align'] == 'right':
+                # Agar text right me hai, toh text block ke niche-right corner me aayega
+                char_x = CANVAS_W - char_w - 60
+            else:
+                # Agar text left me hai, toh text block ke niche-left corner me aayega
+                char_x = info_x
+                
+            char_y = min(last_meta_y + 60, CANVAS_H - char_h - 25)
+            
+            # Soft Drop Shadow for the Character to look aesthetic
+            char_shadow = Image.new("RGBA", resized_char.size, (0, 0, 0, 0))
+            char_shadow_mask = resized_char.split()[3]
+            char_shadow.paste((0, 0, 0, 120), (0, 0), mask=char_shadow_mask)
+            char_shadow = char_shadow.filter(ImageFilter.GaussianBlur(6))
+            canvas.paste(char_shadow, (char_x + 4, char_y + 4), char_shadow)
+            
+            # Pasting the actual character image
+            canvas.paste(resized_char, (char_x, char_y), resized_char)
+        # -------------------------------------------------------------
         
         if random.choice([True, False]):
             corner_size = random.randint(30, 50)
