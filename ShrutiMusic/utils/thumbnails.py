@@ -34,12 +34,6 @@ from py_yt import VideosSearch
 from ShrutiMusic import app
 import math
 
-# =====================================================================
-# CHHOTA CHARACTER: YAHAN AAPKI IMAGE KI LINK PEHLE SE SET HAI BHAI
-# =====================================================================
-CHARACTER_IMAGE_URL = "https://files.catbox.moe/nxkriz.png"  
-# =====================================================================
-
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
@@ -235,7 +229,6 @@ def add_glow_ring(canvas, x, y, size, color, blur_amount):
 async def gen_thumb(videoid: str):
     url = f"https://www.youtube.com/watch?v={videoid}"
     thumb_path = None
-    char_img = None
     
     try:
         results = VideosSearch(url, limit=1)
@@ -254,15 +247,8 @@ async def gen_thumb(videoid: str):
                         thumb_path = CACHE_DIR / f"thumb{videoid}.png"
                         async with aiofiles.open(thumb_path, "wb") as f:
                             await f.write(await resp.read())
-                
-                # --- CHARACTER IMAGE DOWNLOAD (SAFE ADDITION) ---
-                if CHARACTER_IMAGE_URL and CHARACTER_IMAGE_URL.strip() != "" and "example.com" not in CHARACTER_IMAGE_URL:
-                    async with session.get(CHARACTER_IMAGE_URL) as char_resp:
-                        if char_resp.status == 200:
-                            char_data = await char_resp.read()
-                            char_img = Image.open(io.BytesIO(char_data)).convert("RGBA")
-        except Exception as char_err:
-            print(f"[Character Download Error] {char_err}")
+        except Exception as img_err:
+            print(f"[Image Download Error] {img_err}")
 
         if thumb_path and thumb_path.exists():
             base_img = Image.open(thumb_path).convert("RGBA")
@@ -299,21 +285,29 @@ async def gen_thumb(videoid: str):
         art_x = layout['art_x']
         art_y = (CANVAS_H - art_size) // 2
         
+        # --- HIGH LEVEL CINEMATIC COLOUR GRADING & DETAILING FOR ALBUM ART ---
+        # Boosting Contrast and Sharpness dramatically for that deep aesthetic look
+        contrast_en = ImageEnhance.Contrast(base_img)
+        graded_img = contrast_en.enhance(1.25)
+        sharp_en = ImageEnhance.Sharpness(graded_img)
+        graded_img = sharp_en.enhance(1.30)
+        
         mask = create_shape_mask(art_size, layout['art_shape'])
-        art = base_img.resize((art_size, art_size), Image.LANCZOS)
+        art = graded_img.resize((art_size, art_size), Image.LANCZOS)
         art.putalpha(mask)
         
-        # --- SHADOW LIGHTING / AMBIENT GLOW EFFECT ---
-        glow_padding = 160
+        # --- DEEP PRO SHADOW LIGHTING EFFECT ---
+        glow_padding = 180
         glow_canvas_size = art_size + glow_padding
         glow_layer = Image.new("RGBA", (glow_canvas_size, glow_canvas_size), (0, 0, 0, 0))
         glow_draw = ImageDraw.Draw(glow_layer)
         
+        # Soft vibrant base glow matching the accent color
         glow_draw.ellipse(
-            [40, 40, glow_canvas_size - 40, glow_canvas_size - 40],
-            fill=(*accent_color, 140)
+            [30, 30, glow_canvas_size - 30, glow_canvas_size - 30],
+            fill=(*accent_color, 160)
         )
-        glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(60))
+        glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(65))
         canvas.paste(glow_layer, (art_x - (glow_padding // 2), art_y - (glow_padding // 2)), glow_layer)
         
         if random.choice([True, False]):
@@ -322,16 +316,14 @@ async def gen_thumb(videoid: str):
         canvas.paste(art, (art_x, art_y), art)
         
         draw = ImageDraw.Draw(canvas)
-        
         add_accent_elements(draw, layout, accent_color)
         
         brand_font = ImageFont.truetype(FONT_BOLD_PATH, random.randint(36, 48))
         brand_x = random.randint(35, 60)
         brand_y = random.randint(25, 45)
         
-        shadow_offset = 2
-        draw.text((brand_x + shadow_offset, brand_y + shadow_offset), 
-                 app.username, fill=(0, 0, 0, 150), font=brand_font)
+        # Crisp Title/Brand Shadows
+        draw.text((brand_x + 3, brand_y + 3), app.username, fill=(0, 0, 0, 180), font=brand_font)
         draw.text((brand_x, brand_y), app.username, fill=(255, 255, 255, 255), font=brand_font)
         
         brand_bbox = draw.textbbox((brand_x, brand_y), app.username, font=brand_font)
@@ -352,9 +344,7 @@ async def gen_thumb(videoid: str):
         np_text = random.choice(np_options)
         np_y = random.randint(120, 160)
         
-        np_shadow = 3
-        draw.text((info_x + np_shadow, np_y + np_shadow), np_text, 
-                 fill=(0, 0, 0, 180), font=np_font)
+        draw.text((info_x + 3, np_y + 3), np_text, fill=(0, 0, 0, 200), font=np_font)
         draw.text((info_x, np_y), np_text, fill=(*accent_color, 255), font=np_font)
         
         title_font_size = random.randint(36, 48)
@@ -363,9 +353,9 @@ async def gen_thumb(videoid: str):
         title_text = "\n".join(title_lines)
         title_y = np_y + random.randint(70, 100)
         
-        title_shadow = 2
-        draw.multiline_text((info_x + title_shadow, title_y + title_shadow), title_text, 
-                          fill=(0, 0, 0, 160), font=title_font, 
+        # High contrast drop shadowing for maximum text detailing
+        draw.multiline_text((info_x + 3, title_y + 3), title_text, 
+                          fill=(0, 0, 0, 200), font=title_font, 
                           spacing=random.randint(8, 15))
         draw.multiline_text((info_x, title_y), title_text, 
                           fill=(255, 255, 255, 255), font=title_font, 
@@ -394,31 +384,8 @@ async def gen_thumb(videoid: str):
         
         for idx, meta in enumerate(meta_items):
             y = meta_y + (idx * line_spacing)
-            draw.text((info_x + 1, y + 1), meta, fill=(0, 0, 0, 140), font=meta_font)
-            draw.text((info_x, y), meta, fill=(220, 220, 230, 255), font=meta_font)
-
-        # --- RE-POSITIONED CHARACTER IMAGING BLOCK ---
-        if char_img:
-            # Safe image resizing
-            char_aspect = char_img.width / char_img.height
-            char_h = 210  # Size thoda bada kiya taaki clear dikhe
-            char_w = int(char_h * char_aspect)
-            resized_char = char_img.resize((char_w, char_h), Image.LANCZOS)
-            
-            # Perfect position: Hamesha bottom-right side me blank area me dhyan khichega
-            char_x = CANVAS_W - char_w - 50
-            char_y = CANVAS_H - char_h - 40
-            
-            # Light Shadow glow taaki background me mix na ho
-            char_shadow = Image.new("RGBA", resized_char.size, (0, 0, 0, 0))
-            char_shadow_mask = resized_char.split()[3]
-            char_shadow.paste((0, 0, 0, 150), (0, 0), mask=char_shadow_mask)
-            char_shadow = char_shadow.filter(ImageFilter.GaussianBlur(8))
-            canvas.paste(char_shadow, (char_x + 5, char_y + 5), char_shadow)
-            
-            # Final Paste
-            canvas.paste(resized_char, (char_x, char_y), resized_char)
-        # -------------------------------------------------------------
+            draw.text((info_x + 2, y + 2), meta, fill=(0, 0, 0, 160), font=meta_font)
+            draw.text((info_x, y), meta, fill=(230, 230, 240, 255), font=meta_font)
         
         if random.choice([True, False]):
             corner_size = random.randint(30, 50)
