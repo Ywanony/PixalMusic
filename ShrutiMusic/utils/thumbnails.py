@@ -1,7 +1,9 @@
 # Copyright (c) 2025 Nand Yaduwanshi <NoxxOP>
 # Location: Supaul, Bihar
 # All rights reserved.
-# Ultimate Merged Glassmorphic & Cinematic Hybrid Thumbnail Engine.
+#
+# Intellectual property of Nand Yaduwanshi.
+# Enhanced Production Version: Full Advanced Glassmorphism & High-End Vignette Engine.
 
 import os
 import random
@@ -9,11 +11,11 @@ import aiohttp
 import aiofiles
 import traceback
 import io
+import math
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
 from py_yt import VideosSearch
 from ShrutiMusic import app
-import math
 
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
@@ -26,6 +28,7 @@ DEFAULT_THUMB = "ShrutiMusic/assets/ShrutiBots.jpg"
 
 
 def wrap_text(draw, text, font, max_width):
+    """Wraps text cleanly into lines so it doesn't overflow the canvas"""
     words = text.split()
     lines = []
     current_line = ""
@@ -45,26 +48,26 @@ def wrap_text(draw, text, font, max_width):
     return lines[:2]
 
 
-def create_vignette_leather(size, intensity=160):
-    """Generates an elite radial vignette gradient mask for high-end shadows"""
-    w, h = size
+def apply_premium_vignette(canvas, intensity=190):
+    """Creates an ultra-luxury dark blur shadow around all 4 edges of the thumbnail"""
+    w, h = canvas.size
     vignette = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     v_draw = ImageDraw.Draw(vignette)
     
-    max_radius = math.sqrt((w/2)**2 + (h/2)**2)
     cx, cy = w // 2, h // 2
+    max_radius = math.sqrt(cx**2 + cy**2)
     
-    # 4-layer dynamic interpolation for a real graphic-tool shadow feel
-    for y in range(0, h, 2):
-        for x in range(0, w, 4):
-            distance = math.sqrt((x - cx)**2 + (y - cy)**2)
-            ratio = distance / max_radius
-            if ratio > 0.3:
-                alpha = int(intensity * ((ratio - 0.3) / 0.7) ** 1.8)
-                alpha = min(235, max(0, alpha))
-                v_draw.rectangle([x, y, x+4, y+2], fill=(10, 10, 15, alpha))
+    for y in range(0, h, 3):
+        for x in range(0, w, 5):
+            dist = math.sqrt((x - cx)**2 + (y - cy)**2)
+            ratio = dist / max_radius
+            if ratio > 0.25:
+                alpha = int(intensity * ((ratio - 0.25) / 0.75) ** 2)
+                alpha = min(230, max(0, alpha))
+                v_draw.rectangle([x, y, x+5, y+3], fill=(8, 8, 14, alpha))
                 
-    return vignette.filter(ImageFilter.GaussianBlur(25))
+    vignette = vignette.filter(ImageFilter.GaussianBlur(25))
+    return Image.alpha_composite(canvas, vignette)
 
 
 async def gen_thumb(videoid: str):
@@ -76,7 +79,7 @@ async def gen_thumb(videoid: str):
         result = (await results.next())["result"][0]
 
         title = result.get("title", "Unknown Title")
-        duration = result.get("duration", "Unknown")
+        duration = result.get("duration", "0:00")
         thumburl = result["thumbnails"][0]["url"].split("?")[0]
         views = result.get("viewCount", {}).get("short", "Unknown Views")
         channel = result.get("channel", {}).get("name", "Unknown Channel")
@@ -101,7 +104,7 @@ async def gen_thumb(videoid: str):
         try:
             base_img = Image.open(DEFAULT_THUMB).convert("RGBA")
             title = "ShrutiMusic"
-            duration = "Unknown"
+            duration = "0:00"
             views = "Unknown Views"
             channel = "ShrutiBots"
         except:
@@ -109,99 +112,100 @@ async def gen_thumb(videoid: str):
             return None
 
     try:
-        # --- STAGE 1: DYNAMIC CINEMATIC BACKGROUND BLUR ---
-        # Resize artwork to full canvas size & pump up contrast for dynamic color bleed
+        # --- STAGE 1: DYNAMIC BACKGROUND PROCESSING & COLOR GRADIENTS ---
+        canvas = Image.new("RGBA", (CANVAS_W, CANVAS_H), (10, 10, 15, 255))
+        
+        # Creating a beautiful rich blurred background from the YouTube thumbnail itself
         bg_blur = base_img.resize((CANVAS_W, CANVAS_H), Image.LANCZOS)
-        bg_contrast = ImageEnhance.Contrast(bg_blur).enhance(1.4)
-        bg_final = bg_contrast.filter(ImageFilter.GaussianBlur(55))
+        bg_graded = ImageEnhance.Contrast(bg_blur).enhance(1.50)
+        bg_graded = ImageEnhance.Brightness(bg_graded).enhance(0.55)
+        bg_final = bg_graded.filter(ImageFilter.GaussianBlur(55))
         
-        # Apply dark tint mask to merge the colors cleanly
-        dark_tint = Image.new("RGBA", (CANVAS_W, CANVAS_H), (12, 12, 18, 110))
-        canvas = Image.alpha_composite(bg_final, dark_tint)
+        # Smooth atmospheric ambient tint layer
+        ambient_tint = Image.new("RGBA", (CANVAS_W, CANVAS_H), (12, 14, 22, 100))
+        canvas = Image.alpha_composite(bg_final, ambient_tint)
         
-        # Apply the mathematical Vignette Shadow across all 4 main edges
-        vignette_layer = create_vignette_leather((CANVAS_W, CANVAS_H), intensity=190)
-        canvas = Image.alpha_composite(canvas, vignette_layer)
+        # Injecting the mathematical soft edge dark shadow vignette
+        canvas = apply_premium_vignette(canvas, intensity=210)
 
-        # --- STAGE 2: MATHEMATICAL HYPER-GLASSMORPHIC PLAYER CARD ---
+        # --- STAGE 2: MATHEMATICAL PREMIUM GLASS CONTAINER ---
         card_w, card_h = 1140, 520
         card_x = (CANVAS_W - card_w) // 2
         card_y = (CANVAS_H - card_h) // 2
         card_radius = 45
 
-        # Create precise Glass Overlay with rich inner light ambient shadow
-        glass_mask = Image.new("L", (card_w, card_h), 0)
-        g_draw = ImageDraw.Draw(glass_mask)
-        g_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, fill=255)
-
-        glass_card = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 12)) 
-        
-        # Soft Outer Shadow for the glass card structure itself
+        # Creating the soft depth drop shadow behind the glass plate
         card_shadow = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
         cs_draw = ImageDraw.Draw(card_shadow)
-        cs_draw.rounded_rectangle([card_x-4, card_y-4, card_x+card_w+4, card_y+card_h+4], radius=card_radius+2, fill=(0, 0, 0, 180))
+        cs_draw.rounded_rectangle(
+            [card_x - 6, card_y - 6, card_x + card_w + 6, card_y + card_h + 6], 
+            radius=card_radius, fill=(0, 0, 0, 170)
+        )
         card_shadow = card_shadow.filter(ImageFilter.GaussianBlur(35))
         canvas.paste(card_shadow, (0, 0), card_shadow)
 
-        # Paste the real glass base layer inside the mask boundaries
-        canvas.paste(glass_card, (card_x, card_y), glass_mask)
+        # Alpha-blended frosted glass layer mask mapping
+        glass_mask = Image.new("L", (card_w, card_h), 0)
+        g_draw = ImageDraw.Draw(glass_mask)
+        g_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, fill=255)
+        
+        glass_surface = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 14))
+        canvas.paste(glass_surface, (card_x, card_y), glass_mask)
 
-        # --- STAGE 3: THE HIGH-DENSITY ALBUM ARTWORK ---
+        # --- STAGE 3: CRISP RESOLUTION ALBUM ARTWORK ---
         art_size = 380
-        art_x = card_x + 50
+        art_x = card_x + 55
         art_y = card_y + (card_h - art_size) // 2
 
         art_mask = Image.new("L", (art_size, art_size), 0)
         am_draw = ImageDraw.Draw(art_mask)
-        am_draw.rounded_rectangle([0, 0, art_size, art_size], radius=30, fill=255)
+        am_draw.rounded_rectangle([0, 0, art_size, art_size], radius=25, fill=255)
 
-        # Master Grade detailing adjustments for the internal card artwork
-        graded_art = ImageEnhance.Contrast(base_img).enhance(1.25)
-        graded_art = ImageEnhance.Sharpness(graded_art).enhance(1.30)
-        art_resized = graded_art.resize((art_size, art_size), Image.LANCZOS)
-        art_resized.putalpha(art_mask)
+        # Master grade digital tuning for clarity inside the player card
+        tuned_art = ImageEnhance.Contrast(base_img).enhance(1.30)
+        tuned_art = ImageEnhance.Sharpness(tuned_art).enhance(1.45)
+        art_final = tuned_art.resize((art_size, art_size), Image.LANCZOS)
+        art_final.putalpha(art_mask)
 
-        # Drop shadow underneath album cover
-        art_shadow = Image.new("RGBA", (art_size+60, art_size+60), (0, 0, 0, 0))
+        # Smooth border back-shadow map specifically for the album image cover
+        art_shadow = Image.new("RGBA", (art_size + 40, art_size + 40), (0, 0, 0, 0))
         as_draw = ImageDraw.Draw(art_shadow)
-        as_draw.rounded_rectangle([30, 30, art_size+30, art_size+30], radius=30, fill=(0, 0, 0, 225))
-        art_shadow = art_shadow.filter(ImageFilter.GaussianBlur(25))
-        canvas.paste(art_shadow, (art_x-30, art_y-30), art_shadow)
-        
-        canvas.paste(art_resized, (art_x, art_y), art_resized)
+        as_draw.rounded_rectangle([20, 20, art_size + 20, art_size + 20], radius=25, fill=(0, 0, 0, 220))
+        art_shadow = art_shadow.filter(ImageFilter.GaussianBlur(22))
+        canvas.paste(art_shadow, (art_x - 20, art_y - 20), art_shadow)
 
-        # --- STAGE 4: ULTRA LUXURY ACCENT & EDGE LIGHT SHADOWS (INSIDE CARD) ---
-        card_overlay = Image.new("RGBA", (card_w, card_h), (0, 0, 0, 0))
-        co_draw = ImageDraw.Draw(card_overlay)
-        # Soft white premium rim-light reflection border lines
-        co_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, outline=(255, 255, 255, 30), width=2)
-        canvas.paste(card_overlay, (card_x, card_y), glass_mask)
+        canvas.paste(art_final, (art_x, art_y), art_final)
 
-        # --- STAGE 5: PREMIUM CLEAN TYPOGRAPHY SYSTEM ---
+        # Luxury sleek border stroke on the glass plate edge container
+        glass_rim = Image.new("RGBA", (card_w, card_h), (0, 0, 0, 0))
+        gr_draw = ImageDraw.Draw(glass_rim)
+        gr_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, outline=(255, 255, 255, 28), width=2)
+        canvas.paste(glass_rim, (card_x, card_y), glass_mask)
+
+        # --- STAGE 4: DESIGNER TYPOGRAPHY & TEXT HIERARCHY ---
         draw = ImageDraw.Draw(canvas)
-        
-        info_x = art_x + art_size + 60
-        max_text_w = (card_x + card_w) - info_x - 50
+        info_x = art_x + art_size + 65
+        max_text_w = (card_x + card_w) - info_x - 55
 
-        # Sub-header: App Username / Branding Header
-        brand_font = ImageFont.truetype(FONT_BOLD_PATH, 30)
+        # 1. Branding Text (Clean & Minimal sub-head)
+        brand_font = ImageFont.truetype(FONT_BOLD_PATH, 26)
         brand_text = f"// {app.username.upper()}"
-        brand_y = card_y + 65
-        draw.text((info_x + 1, brand_y + 1), brand_text, fill=(0, 0, 0, 100), font=brand_font)
-        draw.text((info_x, brand_y), brand_text, fill=(255, 255, 255, 140), font=brand_font)
+        brand_y = card_y + 70
+        draw.text((info_x, brand_y), brand_text, fill=(255, 255, 255, 130), font=brand_font)
 
-        # Main Header: Track Title Display
-        title_font = ImageFont.truetype(FONT_BOLD_PATH, 48)
+        # 2. Headline Title (Dynamic, Huge & Premium text formatting)
+        title_font = ImageFont.truetype(FONT_BOLD_PATH, 52)
         title_lines = wrap_text(draw, title, title_font, max_text_w)
         title_text = "\n".join(title_lines)
-        title_y = brand_y + 55
+        title_y = brand_y + 50
         
-        draw.multiline_text((info_x + 2, title_y + 2), title_text, fill=(0, 0, 0, 200), font=title_font, spacing=8)
+        # Drop text shadow padding for clean legibility against any image color bleed
+        draw.multiline_text((info_x + 2, title_y + 2), title_text, fill=(0, 0, 0, 190), font=title_font, spacing=8)
         draw.multiline_text((info_x, title_y), title_text, fill=(255, 255, 255, 255), font=title_font, spacing=8)
 
-        # Metadata Layout Configuration
+        # 3. Metadata Layout Arrays (Structured spacing down below)
         meta_font = ImageFont.truetype(FONT_REGULAR_PATH, 28)
-        meta_y = title_y + 135
+        meta_y = title_y + 145
         
         duration_label = duration
         if duration and ":" in duration:
@@ -216,17 +220,17 @@ async def gen_thumb(videoid: str):
         ]
 
         for idx, meta in enumerate(meta_items):
-            y_pos = meta_y + (idx * 48)
-            draw.text((info_x + 2, y_pos + 1), meta, fill=(0, 0, 0, 140), font=meta_font)
-            draw.text((info_x, y_pos), meta, fill=(215, 220, 235, 235), font=meta_font)
+            y_pos = meta_y + (idx * 46)
+            draw.text((info_x + 1, y_pos + 1), meta, fill=(0, 0, 0, 140), font=meta_font)
+            draw.text((info_x, y_pos), meta, fill=(215, 220, 240, 225), font=meta_font)
 
-        # Pure Professionalism Aspect Ratio Border Frame (Fine detailing touch)
-        edge_detail = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
-        ed_draw = ImageDraw.Draw(edge_detail)
-        ed_draw.rectangle([0, 0, CANVAS_W, CANVAS_H], outline=(255, 255, 255, 10), width=4)
-        canvas = Image.alpha_composite(canvas, edge_detail)
+        # Thin peripheral canvas frame line to bind the aesthetic details together
+        canvas_frame = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
+        cf_draw = ImageDraw.Draw(canvas_frame)
+        cf_draw.rectangle([0, 0, CANVAS_W, CANVAS_H], outline=(255, 255, 255, 8), width=3)
+        canvas = Image.alpha_composite(canvas, canvas_frame)
 
-        # --- STAGE 6: FINALIZE AND EXPORT ---
+        # --- STAGE 5: SAVE EXPORT BUFFER ---
         out = CACHE_DIR / f"{videoid}_final.png"
         canvas.save(out, quality=97, optimize=True)
 
