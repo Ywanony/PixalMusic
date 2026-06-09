@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Nand Yaduwanshi <NoxxOP>
 # Location: Supaul, Bihar
 # All rights reserved.
-# Code Enhanced for Premium Shadow and Professional Aesthetics.
+# Ultimate Merged Glassmorphic & Cinematic Hybrid Thumbnail Engine.
 
 import os
 import random
@@ -45,124 +45,26 @@ def wrap_text(draw, text, font, max_width):
     return lines[:2]
 
 
-def random_gradient():
-    colors = [
-        [(15, 12, 41), (48, 43, 99), (36, 36, 62)],
-        [(10, 10, 10), (35, 35, 40), (20, 20, 25)],
-        [(26, 26, 46), (56, 56, 86), (40, 40, 60)],
-        [(20, 25, 35), (45, 50, 70), (30, 35, 50)],
-        [(12, 17, 30), (38, 43, 65), (25, 30, 45)],
-        [(18, 18, 28), (48, 48, 68), (32, 32, 48)],
-        [(8, 15, 25), (28, 40, 55), (18, 28, 40)],
-        [(22, 22, 35), (52, 52, 75), (35, 35, 55)],
-        [(14, 20, 28), (44, 50, 68), (28, 35, 48)],
-        [(16, 14, 38), (46, 44, 88), (30, 28, 60)],
-    ]
-    return random.choice(colors)
-
-
-def apply_gradient(canvas, colors):
-    overlay = Image.new('RGBA', canvas.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(overlay)
+def create_vignette_leather(size, intensity=160):
+    """Generates an elite radial vignette gradient mask for high-end shadows"""
+    w, h = size
+    vignette = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    v_draw = ImageDraw.Draw(vignette)
     
-    for y in range(CANVAS_H):
-        progress = y / CANVAS_H
-        
-        if progress < 0.4:
-            t = progress / 0.4
-            r = int(colors[0][0] * (1-t) + colors[1][0] * t)
-            g = int(colors[0][1] * (1-t) + colors[1][1] * t)
-            b = int(colors[0][2] * (1-t) + colors[2][2] * t)
-        else:
-            t = (progress - 0.4) / 0.6
-            r = int(colors[1][0] * (1-t) + colors[2][0] * t)
-            g = int(colors[1][1] * (1-t) + colors[2][1] * t)
-            b = int(colors[1][2] * (1-t) + colors[2][2] * t)
-        
-        draw.line([(0, y), (CANVAS_W, y)], fill=(r, g, b, 255))
+    max_radius = math.sqrt((w/2)**2 + (h/2)**2)
+    cx, cy = w // 2, h // 2
     
-    return Image.alpha_composite(canvas, overlay)
-
-
-def random_layout():
-    layouts = [
-        {
-            'art_size': random.randint(440, 500),
-            'art_x': random.randint(80, 130),
-            'art_shape': 'rounded',
-            'text_align': 'right',
-            'accent_style': 'glow',
-            'show_particles': False
-        },
-        {
-            'art_size': random.randint(440, 500),
-            'art_x': CANVAS_W - random.randint(540, 600),
-            'art_shape': 'rounded',
-            'text_align': 'left',
-            'accent_style': 'glow',
-            'show_particles': False
-        }
-    ]
-    return random.choice(layouts)
-
-
-def create_shape_mask(size, shape):
-    mask = Image.new("L", (size, size), 0)
-    draw = ImageDraw.Draw(mask)
-    radius = 35  # Clean professional rounded corners like Spotify/Apple Music
-    draw.rounded_rectangle([0, 0, size, size], radius=radius, fill=255)
-    return mask
-
-
-def random_accent_color():
-    colors = [
-        (88, 166, 255),
-        (138, 180, 248),
-        (156, 163, 255),
-        (200, 200, 220),
-        (180, 190, 254),
-        (120, 200, 255),
-        (165, 177, 255),
-        (148, 226, 213),
-    ]
-    return random.choice(colors)
-
-
-def add_premium_edge_shadow(canvas):
-    """
-    Creates that deep, professional light shadow/vignette effect 
-    around all 4 edges of the thumbnail just like requested.
-    """
-    shadow_mask = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
-    s_draw = ImageDraw.Draw(shadow_mask)
-    
-    # Outer dark edge vignette frame
-    border_thickness = 45
-    for i in range(border_thickness):
-        alpha = int(140 * (1.0 - (i / border_thickness)))
-        s_draw.rectangle(
-            [i, i, CANVAS_W - i, CANVAS_H - i], 
-            outline=(10, 10, 15, alpha), 
-            width=1
-        )
-        
-    shadow_mask = shadow_mask.filter(ImageFilter.GaussianBlur(18))
-    return Image.alpha_composite(canvas, shadow_mask)
-
-
-def add_glow_ring(canvas, x, y, size, color, blur_amount):
-    ring_size = size + 30
-    ring_img = Image.new("RGBA", (ring_size, ring_size), (0, 0, 0, 0))
-    rdraw = ImageDraw.Draw(ring_img)
-    
-    for i in range(4):
-        offset = i * 4
-        alpha = 100 - (i * 25)
-        rdraw.ellipse([offset, offset, ring_size - offset, ring_size - offset],
-                     outline=(*color, alpha), width=2)
-    
-    ring_img = ring_img.filter(ImageFilter.GaussianBlur(blur_amount))
-    canvas.paste(ring_img, (x - 15, y - 15), ring_img)
+    # 4-layer dynamic interpolation for a real graphic-tool shadow feel
+    for y in range(0, h, 2):
+        for x in range(0, w, 4):
+            distance = math.sqrt((x - cx)**2 + (y - cy)**2)
+            ratio = distance / max_radius
+            if ratio > 0.3:
+                alpha = int(intensity * ((ratio - 0.3) / 0.7) ** 1.8)
+                alpha = min(235, max(0, alpha))
+                v_draw.rectangle([x, y, x+4, y+2], fill=(10, 10, 15, alpha))
+                
+    return vignette.filter(ImageFilter.GaussianBlur(25))
 
 
 async def gen_thumb(videoid: str):
@@ -207,101 +109,126 @@ async def gen_thumb(videoid: str):
             return None
 
     try:
-        canvas = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 255))
+        # --- STAGE 1: DYNAMIC CINEMATIC BACKGROUND BLUR ---
+        # Resize artwork to full canvas size & pump up contrast for dynamic color bleed
+        bg_blur = base_img.resize((CANVAS_W, CANVAS_H), Image.LANCZOS)
+        bg_contrast = ImageEnhance.Contrast(bg_blur).enhance(1.4)
+        bg_final = bg_contrast.filter(ImageFilter.GaussianBlur(55))
         
-        gradient_colors = random_gradient()
-        canvas = apply_gradient(canvas, gradient_colors)
+        # Apply dark tint mask to merge the colors cleanly
+        dark_tint = Image.new("RGBA", (CANVAS_W, CANVAS_H), (12, 12, 18, 110))
+        canvas = Image.alpha_composite(bg_final, dark_tint)
         
-        layout = random_layout()
-        accent_color = random_accent_color()
+        # Apply the mathematical Vignette Shadow across all 4 main edges
+        vignette_layer = create_vignette_leather((CANVAS_W, CANVAS_H), intensity=190)
+        canvas = Image.alpha_composite(canvas, vignette_layer)
+
+        # --- STAGE 2: MATHEMATICAL HYPER-GLASSMORPHIC PLAYER CARD ---
+        card_w, card_h = 1140, 520
+        card_x = (CANVAS_W - card_w) // 2
+        card_y = (CANVAS_H - card_h) // 2
+        card_radius = 45
+
+        # Create precise Glass Overlay with rich inner light ambient shadow
+        glass_mask = Image.new("L", (card_w, card_h), 0)
+        g_draw = ImageDraw.Draw(glass_mask)
+        g_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, fill=255)
+
+        glass_card = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 12)) 
         
-        art_size = layout['art_size']
-        art_x = layout['art_x']
-        art_y = (CANVAS_H - art_size) // 2
+        # Soft Outer Shadow for the glass card structure itself
+        card_shadow = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
+        cs_draw = ImageDraw.Draw(card_shadow)
+        cs_draw.rounded_rectangle([card_x-4, card_y-4, card_x+card_w+4, card_y+card_h+4], radius=card_radius+2, fill=(0, 0, 0, 180))
+        card_shadow = card_shadow.filter(ImageFilter.GaussianBlur(35))
+        canvas.paste(card_shadow, (0, 0), card_shadow)
+
+        # Paste the real glass base layer inside the mask boundaries
+        canvas.paste(glass_card, (card_x, card_y), glass_mask)
+
+        # --- STAGE 3: THE HIGH-DENSITY ALBUM ARTWORK ---
+        art_size = 380
+        art_x = card_x + 50
+        art_y = card_y + (card_h - art_size) // 2
+
+        art_mask = Image.new("L", (art_size, art_size), 0)
+        am_draw = ImageDraw.Draw(art_mask)
+        am_draw.rounded_rectangle([0, 0, art_size, art_size], radius=30, fill=255)
+
+        # Master Grade detailing adjustments for the internal card artwork
+        graded_art = ImageEnhance.Contrast(base_img).enhance(1.25)
+        graded_art = ImageEnhance.Sharpness(graded_art).enhance(1.30)
+        art_resized = graded_art.resize((art_size, art_size), Image.LANCZOS)
+        art_resized.putalpha(art_mask)
+
+        # Drop shadow underneath album cover
+        art_shadow = Image.new("RGBA", (art_size+60, art_size+60), (0, 0, 0, 0))
+        as_draw = ImageDraw.Draw(art_shadow)
+        as_draw.rounded_rectangle([30, 30, art_size+30, art_size+30], radius=30, fill=(0, 0, 0, 225))
+        art_shadow = art_shadow.filter(ImageFilter.GaussianBlur(25))
+        canvas.paste(art_shadow, (art_x-30, art_y-30), art_shadow)
         
-        # High level color grading for album art
-        contrast_en = ImageEnhance.Contrast(base_img)
-        graded_img = contrast_en.enhance(1.30)
-        sharp_en = ImageEnhance.Sharpness(graded_img)
-        graded_img = sharp_en.enhance(1.35)
-        
-        mask = create_shape_mask(art_size, layout['art_shape'])
-        art = graded_img.resize((art_size, art_size), Image.LANCZOS)
-        art.putalpha(mask)
-        
-        # Album Art Drop Shadow
-        glow_padding = 140
-        glow_canvas_size = art_size + glow_padding
-        glow_layer = Image.new("RGBA", (glow_canvas_size, glow_canvas_size), (0, 0, 0, 0))
-        glow_draw = ImageDraw.Draw(glow_layer)
-        
-        glow_draw.ellipse(
-            [25, 25, glow_canvas_size - 25, glow_canvas_size - 25],
-            fill=(0, 0, 0, 150)
-        )
-        glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(50))
-        canvas.paste(glow_layer, (art_x - (glow_padding // 2), art_y - (glow_padding // 2)), glow_layer)
-        
-        add_glow_ring(canvas, art_x, art_y, art_size, accent_color, 12)
-        canvas.paste(art, (art_x, art_y), art)
-        
+        canvas.paste(art_resized, (art_x, art_y), art_resized)
+
+        # --- STAGE 4: ULTRA LUXURY ACCENT & EDGE LIGHT SHADOWS (INSIDE CARD) ---
+        card_overlay = Image.new("RGBA", (card_w, card_h), (0, 0, 0, 0))
+        co_draw = ImageDraw.Draw(card_overlay)
+        # Soft white premium rim-light reflection border lines
+        co_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, outline=(255, 255, 255, 30), width=2)
+        canvas.paste(card_overlay, (card_x, card_y), glass_mask)
+
+        # --- STAGE 5: PREMIUM CLEAN TYPOGRAPHY SYSTEM ---
         draw = ImageDraw.Draw(canvas)
         
-        brand_font = ImageFont.truetype(FONT_BOLD_PATH, 42)
-        brand_x = 65
-        brand_y = 50
-        
-        draw.text((brand_x + 2, brand_y + 2), app.username, fill=(0, 0, 0, 150), font=brand_font)
-        draw.text((brand_x, brand_y), app.username, fill=(255, 255, 255, 230), font=brand_font)
-        
-        if layout['text_align'] == 'right':
-            info_x = art_x + art_size + 80
-            max_text_w = CANVAS_W - info_x - 65
-        else:
-            info_x = 80
-            max_text_w = art_x - info_x - 60
-        
-        np_font = ImageFont.truetype(FONT_BOLD_PATH, 60)
-        np_text = "NOW PLAYING"
-        np_y = 150
-        
-        draw.text((info_x + 2, np_y + 2), np_text, fill=(0, 0, 0, 180), font=np_font)
-        draw.text((info_x, np_y), np_text, fill=(*accent_color, 255), font=np_font)
-        
-        title_font = ImageFont.truetype(FONT_BOLD_PATH, 44)
+        info_x = art_x + art_size + 60
+        max_text_w = (card_x + card_w) - info_x - 50
+
+        # Sub-header: App Username / Branding Header
+        brand_font = ImageFont.truetype(FONT_BOLD_PATH, 30)
+        brand_text = f"// {app.username.upper()}"
+        brand_y = card_y + 65
+        draw.text((info_x + 1, brand_y + 1), brand_text, fill=(0, 0, 0, 100), font=brand_font)
+        draw.text((info_x, brand_y), brand_text, fill=(255, 255, 255, 140), font=brand_font)
+
+        # Main Header: Track Title Display
+        title_font = ImageFont.truetype(FONT_BOLD_PATH, 48)
         title_lines = wrap_text(draw, title, title_font, max_text_w)
         title_text = "\n".join(title_lines)
-        title_y = np_y + 90
+        title_y = brand_y + 55
         
-        draw.multiline_text((info_x + 2, title_y + 2), title_text, fill=(0, 0, 0, 180), font=title_font, spacing=10)
-        draw.multiline_text((info_x, title_y), title_text, fill=(255, 255, 255, 255), font=title_font, spacing=10)
-        
-        meta_font = ImageFont.truetype(FONT_REGULAR_PATH, 32)
-        meta_y = title_y + 140
-        line_spacing = 55
+        draw.multiline_text((info_x + 2, title_y + 2), title_text, fill=(0, 0, 0, 200), font=title_font, spacing=8)
+        draw.multiline_text((info_x, title_y), title_text, fill=(255, 255, 255, 255), font=title_font, spacing=8)
+
+        # Metadata Layout Configuration
+        meta_font = ImageFont.truetype(FONT_REGULAR_PATH, 28)
+        meta_y = title_y + 135
         
         duration_label = duration
         if duration and ":" in duration:
             parts = duration.split(":")
             if len(parts) == 2 and parts[0].isdigit():
                 duration_label = f"{parts[0]}m {parts[1]}s"
-        
+
         meta_items = [
-            f"Views: {views}",
-            f"Duration: {duration_label}",
-            f"Channel: {channel}"
+            f"Channel:  {channel}",
+            f"Views:    {views}",
+            f"Duration: {duration_label}"
         ]
-        
+
         for idx, meta in enumerate(meta_items):
-            y = meta_y + (idx * line_spacing)
-            draw.text((info_x + 2, y + 2), meta, fill=(0, 0, 0, 150), font=meta_font)
-            draw.text((info_x, y), meta, fill=(220, 220, 230, 255), font=meta_font)
-            
-        # --- APPLYING THE ULTRA LUXURY BLURRED EDGE SHADOW ---
-        canvas = add_premium_edge_shadow(canvas)
-        
+            y_pos = meta_y + (idx * 48)
+            draw.text((info_x + 2, y_pos + 1), meta, fill=(0, 0, 0, 140), font=meta_font)
+            draw.text((info_x, y_pos), meta, fill=(215, 220, 235, 235), font=meta_font)
+
+        # Pure Professionalism Aspect Ratio Border Frame (Fine detailing touch)
+        edge_detail = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
+        ed_draw = ImageDraw.Draw(edge_detail)
+        ed_draw.rectangle([0, 0, CANVAS_W, CANVAS_H], outline=(255, 255, 255, 10), width=4)
+        canvas = Image.alpha_composite(canvas, edge_detail)
+
+        # --- STAGE 6: FINALIZE AND EXPORT ---
         out = CACHE_DIR / f"{videoid}_final.png"
-        canvas.save(out, quality=95, optimize=True)
+        canvas.save(out, quality=97, optimize=True)
 
         if thumb_path and thumb_path.exists():
             try:
