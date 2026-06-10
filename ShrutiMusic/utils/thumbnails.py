@@ -126,7 +126,7 @@ async def gen_thumb(videoid: str):
         canvas = Image.alpha_composite(bg_final, dim_mesh)
         canvas = apply_premium_outer_glow(canvas, intensity=245)
 
-        # --- STAGE 2: THE MAIN DESIGN CONTAINER (NO MORE WHITE CARD) ---
+        # --- STAGE 2: THE MAIN DESIGN CONTAINER (FIXED TRANSPARENCY) ---
         card_w, card_h = 1160, 520
         card_x = (CANVAS_W - card_w) // 2
         card_y = (CANVAS_H - card_h) // 2
@@ -143,14 +143,15 @@ async def gen_thumb(videoid: str):
         canvas.paste(card_shadow, (0, 0), card_shadow)
 
         # Draw the Premium Matte-Dark Transparent Glass Container Layer
-        glass_container = Image.new("RGBA", (card_w, card_h), (26, 27, 38, 235)) 
-        glass_mask = Image.new("L", (card_w, card_h), 0)
-        g_draw = ImageDraw.Draw(glass_mask)
-        g_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, fill=255)
-        canvas.paste(glass_container, (card_x, card_y), glass_mask)
+        glass_container = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
+        g_draw = ImageDraw.Draw(glass_container)
+        g_draw.rounded_rectangle(
+            [card_x, card_y, card_x + card_w, card_y + card_h], 
+            radius=card_radius, fill=(26, 27, 38, 220)
+        )
+        canvas = Image.alpha_composite(canvas, glass_container)
 
         # --- STAGE 3: LEFT-SIDE SQUARE THUMBNAIL ADJUSTMENT ---
-        # Exactly like the reference UI player box size specs
         art_w, art_h = 400, 400  
         art_x = card_x + 60
         art_y = card_y + (card_h - art_h) // 2
@@ -167,18 +168,21 @@ async def gen_thumb(videoid: str):
         art_final.putalpha(art_mask)
 
         # Soft drop shadow underneath the left artwork square block
-        art_shadow = Image.new("RGBA", (art_w + 30, art_h + 30), (0, 0, 0, 0))
+        art_shadow = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
         as_draw = ImageDraw.Draw(art_shadow)
-        as_draw.rounded_rectangle([15, 15, art_w + 15, art_h + 15], radius=30, fill=(0, 0, 0, 240))
+        as_draw.rounded_rectangle(
+            [art_x - 10, art_y - 10, art_x + art_w + 10, art_y + art_h + 10], 
+            radius=30, fill=(0, 0, 0, 220)
+        )
         art_shadow = art_shadow.filter(ImageFilter.GaussianBlur(15))
-        canvas.paste(art_shadow, (art_x - 15, art_y - 15), art_shadow)
+        canvas.paste(art_shadow, (0, 0), art_shadow)
 
         # PASTE THE ACTUAL MUSIC THUMBNAIL PHOTO
         canvas.paste(art_final, (art_x, art_y), art_final)
 
         # --- STAGE 4: RIGHT-SIDE FONTS & TYPOGRAPHY ADJUSTMENT ---
         draw = ImageDraw.Draw(canvas)
-        info_x = art_x + art_w + 60  # Aligned safely right next to the left thumbnail photo box
+        info_x = art_x + art_w + 60  
         max_text_w = (card_x + card_w) - info_x - 60
 
         # 1. Bot Username Branding Sub-Header
@@ -219,15 +223,18 @@ async def gen_thumb(videoid: str):
             full_text = f"{label}{val}"
             
             draw.text((info_x + 2, y_pos + 2), full_text, fill=(0, 0, 0, 240), font=meta_font)
-            draw.text((info_x, y_pos), label, fill=(156, 163, 175, 255), font=meta_font) # Clean Silver Grey Label
+            draw.text((info_x, y_pos), label, fill=(156, 163, 175, 255), font=meta_font) 
             label_w = draw.textlength(label, font=meta_font)
-            draw.text((info_x + label_w, y_pos), val, fill=(252, 211, 77, 245), font=meta_font) # Luxurious Gold Text
+            draw.text((info_x + label_w, y_pos), val, fill=(252, 211, 77, 245), font=meta_font) 
 
         # Inner Container Rim Outline Frame
-        glass_rim = Image.new("RGBA", (card_w, card_h), (0, 0, 0, 0))
+        glass_rim = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
         gr_draw = ImageDraw.Draw(glass_rim)
-        gr_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, outline=(255, 255, 255, 25), width=2)
-        canvas.paste(glass_rim, (card_x, card_y), glass_mask)
+        gr_draw.rounded_rectangle(
+            [card_x, card_y, card_x + card_w, card_y + card_h], 
+            radius=card_radius, outline=(255, 255, 255, 25), width=2
+        )
+        canvas = Image.alpha_composite(canvas, glass_rim)
 
         # Canvas Outer Structural Frame Stroke Map
         canvas_frame = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
