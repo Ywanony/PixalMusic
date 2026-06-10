@@ -2,8 +2,8 @@
 # Location: Supaul, Bihar
 # All rights reserved.
 #
-# Ultra-Luxury Premium Glassmorphic Thumbnail Engine.
-# High-End Design Parameters Inspired by Next-Gen Player Aesthetics.
+# Highly Customized Left-Text / Right-Thumbnail Grid Engine.
+# Enhanced with Premium Color Grading & Advanced Edge Shadow Maps.
 
 import os
 import random
@@ -20,7 +20,7 @@ from ShrutiMusic import app
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
-# Master Premium Canvas Resolution
+# Master Premium Canvas Dimensions
 CANVAS_W, CANVAS_H = 1320, 760
 
 FONT_REGULAR_PATH = "ShrutiMusic/assets/font2.ttf"
@@ -116,96 +116,103 @@ async def gen_thumb(videoid: str):
         # --- STAGE 1: CINEMATIC COLOR GRADING BACKGROUND ---
         canvas = Image.new("RGBA", (CANVAS_W, CANVAS_H), (6, 6, 10, 255))
         
-        # Super-sampling and high contrast mapping for extreme background depth
         bg_blur = base_img.resize((CANVAS_W, CANVAS_H), Image.LANCZOS)
         bg_graded = ImageEnhance.Contrast(bg_blur).enhance(1.80)
         bg_graded = ImageEnhance.Brightness(bg_graded).enhance(0.42)
-        bg_graded = ImageEnhance.Color(bg_graded).enhance(1.45) # Deep vibrant saturation
+        bg_graded = ImageEnhance.Color(bg_graded).enhance(1.45)
         bg_final = bg_graded.filter(ImageFilter.GaussianBlur(65))
         
-        # Soft atmospheric color dim layer mesh
         dim_mesh = Image.new("RGBA", (CANVAS_W, CANVAS_H), (8, 10, 16, 130))
         canvas = Image.alpha_composite(bg_final, dim_mesh)
         canvas = apply_premium_outer_glow(canvas, intensity=240)
 
-        # --- STAGE 2: PREMIUM HIGH-END METRIC GLASS CONTAINER ---
+        # --- STAGE 2: FIXED WHITE CONTAINER PANEL WITH BLUR SHADOWS ---
         card_w, card_h = 1160, 520
         card_x = (CANVAS_W - card_w) // 2
         card_y = (CANVAS_H - card_h) // 2
         card_radius = 45
 
-        # Double-Layer Ultra Soft Border Blur Shadow (Matches your image sample 1000023891)
+        # Professional Level Drop Shadow for the White Card Panel
         card_shadow = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
         cs_draw = ImageDraw.Draw(card_shadow)
         cs_draw.rounded_rectangle(
-            [card_x - 12, card_y - 12, card_x + card_w + 12, card_y + card_h + 12], 
-            radius=card_radius, fill=(0, 0, 0, 235)
+            [card_x - 14, card_y - 14, card_x + card_w + 14, card_y + card_h + 14], 
+            radius=card_radius, fill=(0, 0, 0, 240)
         )
-        card_shadow = card_shadow.filter(ImageFilter.GaussianBlur(45))
+        card_shadow = card_shadow.filter(ImageFilter.GaussianBlur(40))
         canvas.paste(card_shadow, (0, 0), card_shadow)
 
-        # Mask logic for frosted surface plate
+        # Draw the original sleek white background card base
         glass_mask = Image.new("L", (card_w, card_h), 0)
         g_draw = ImageDraw.Draw(glass_mask)
         g_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, fill=255)
         
-        # Balanced Dark Luxury Glass Mesh (Completely removes blinding white glitch)
-        glass_surface = Image.new("RGBA", (card_w, card_h), (12, 14, 22, 195))
-        canvas.paste(glass_surface, (card_x, card_y), glass_mask)
+        white_card_surface = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 255))
+        canvas.paste(white_card_surface, (card_x, card_y), glass_mask)
 
-        # --- STAGE 3: LEFT SIDE DYNAMIC THUMBNAIL PICTURE ---
-        art_w, art_h = 440, 340  # Perfect widescreen display aspect ratio inside the card
-        art_x = card_x + 55
+        # --- STAGE 3: INTERNAL LIGHT BLACK BACKDROP GRADIENT (PROFESSIONAL TUNING) ---
+        # Splitting the white card to have a beautiful light-black color graded area inside
+        internal_panel = Image.new("RGBA", (card_w - 20, card_h - 20), (18, 20, 26, 245)) # Sleek Light-Black
+        internal_mask = Image.new("L", (card_w - 20, card_h - 20), 0)
+        int_draw = ImageDraw.Draw(internal_mask)
+        int_draw.rounded_rectangle([0, 0, card_w - 20, card_h - 20], radius=35, fill=255)
+        
+        canvas.paste(internal_panel, (card_x + 10, card_y + 10), internal_mask)
+
+        # --- STAGE 4: RIGHT SIDE DYNAMIC THUMBNAIL (AS REQUESTED) ---
+        art_w, art_h = 440, 340  
+        # Coordinates shifted to the right side of the container panel
+        art_x = card_x + card_w - art_w - 55
         art_y = card_y + (card_h - art_h) // 2
 
         art_mask = Image.new("L", (art_w, art_h), 0)
         am_draw = ImageDraw.Draw(art_mask)
-        am_draw.rounded_rectangle([0, 0, art_w, art_h], radius=30, fill=255)
+        am_draw.rounded_rectangle([0, 0, art_w, art_h], radius=25, fill=255)
 
-        # High level tuning for crisp illustration inside the card plate
-        tuned_art = ImageEnhance.Contrast(base_img).enhance(1.30)
-        tuned_art = ImageEnhance.Sharpness(tuned_art).enhance(1.45)
+        # Calibrating image parameters for extreme punchiness
+        tuned_art = ImageEnhance.Contrast(base_img).enhance(1.35)
+        tuned_art = ImageEnhance.Sharpness(tuned_art).enhance(1.50)
         art_final = tuned_art.resize((art_w, art_h), Image.LANCZOS)
         art_final.putalpha(art_mask)
 
-        # Accent perimeter shadow map for the video artwork block
+        # 3D Depth Shadow profile specifically for the right-side image box
         art_shadow = Image.new("RGBA", (art_w + 40, art_h + 40), (0, 0, 0, 0))
         as_draw = ImageDraw.Draw(art_shadow)
-        as_draw.rounded_rectangle([20, 20, art_w + 20, art_h + 20], radius=30, fill=(0, 0, 0, 250))
-        art_shadow = art_shadow.filter(ImageFilter.GaussianBlur(25))
+        as_draw.rounded_rectangle([20, 20, art_w + 20, art_h + 20], radius=25, fill=(0, 0, 0, 255))
+        art_shadow = art_shadow.filter(ImageFilter.GaussianBlur(22))
         canvas.paste(art_shadow, (art_x - 20, art_y - 20), art_shadow)
 
-        # Paste the dynamically fitted thumbnail safely onto the left side
+        # Paste the genuine song thumbnail right beside the typography fonts
         canvas.paste(art_final, (art_x, art_y), art_final)
 
-        # Sleek glowing border rim stroke outline around the plate container
+        # Elegant outline rim around the card structure
         glass_rim = Image.new("RGBA", (card_w, card_h), (0, 0, 0, 0))
         gr_draw = ImageDraw.Draw(glass_rim)
-        gr_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, outline=(255, 255, 255, 25), width=2)
+        gr_draw.rounded_rectangle([0, 0, card_w, card_h], radius=card_radius, outline=(255, 255, 255, 40), width=2)
         canvas.paste(glass_rim, (card_x, card_y), glass_mask)
 
-        # --- STAGE 4: DESIGNER TYPOGRAPHY & COLOR HIERARCHY SYSTEM ---
+        # --- STAGE 5: LEFT ALIGNED TYPOGRAPHY & TEXT HIERARCHY ---
         draw = ImageDraw.Draw(canvas)
-        info_x = art_x + art_w + 55
-        max_text_w = (card_x + card_w) - info_x - 55
+        info_x = card_x + 65
+        max_text_w = art_x - info_x - 45  # Automatically dynamic bounds to prevent string collision
 
         # 1. Premium Brand Sub-Header
         brand_font = ImageFont.truetype(FONT_BOLD_PATH, 24)
         brand_text = f"// {app.username.upper()}"
-        brand_y = card_y + 75
-        draw.text((info_x, brand_y), brand_text, fill=(56, 189, 248, 190), font=brand_font) # Neon Cyan Accent Line
+        brand_y = card_y + 80
+        draw.text((info_x, brand_y), brand_text, fill=(56, 189, 248, 210), font=brand_font) # Clean Neon Cyan Accent
 
-        # 2. Main Track Headline Title (Pure Crisp White for instant eye capture)
-        title_font = ImageFont.truetype(FONT_BOLD_PATH, 48)
+        # 2. Main Track Headline Title (Pure Bright White over Light-Black surface)
+        title_font = ImageFont.truetype(FONT_BOLD_PATH, 46)
         title_lines = wrap_text(draw, title, title_font, max_text_w)
         title_text = "\n".join(title_lines)
         title_y = brand_y + 45
         
-        # Multi-layer deep text drop shadow to guarantee highest readability
-        draw.multiline_text((info_x + 3, title_y + 3), title_text, fill=(0, 0, 0, 230), font=title_font, spacing=8)
+        # Heavy black background dropshadow for high-fidelity text crispness
+        draw.multiline_text((info_x + 2, title_y + 2), title_text, fill=(0, 0, 0, 240), font=title_font, spacing=8)
         draw.multiline_text((info_x, title_y), title_text, fill=(255, 255, 255, 255), font=title_font, spacing=8)
 
-        # 3. Sub-Fonts Configuration (Separated Colors for Pro Hierarchy Contrast)
+        # 3. Custom Metadata Fields
         meta_font = ImageFont.truetype(FONT_REGULAR_PATH, 28)
         meta_y = title_y + 135
         
@@ -221,27 +228,23 @@ async def gen_thumb(videoid: str):
             ("Duration:", f" {duration_label}")
         ]
 
-        # Multi-color texture parsing loop
+        # Process metadata labels and distinct golden values side-by-side
         for idx, (label, val) in enumerate(meta_items):
             y_pos = meta_y + (idx * 48)
             full_text = f"{label}{val}"
             
-            # Crisp drop shadow behind details block
-            draw.text((info_x + 1, y_pos + 1), full_text, fill=(0, 0, 0, 190), font=meta_font)
-            
-            # Rendering labels using Premium Pastel Slate Grey
-            draw.text((info_x, y_pos), label, fill=(148, 163, 184, 240), font=meta_font)
+            draw.text((info_x + 1, y_pos + 1), full_text, fill=(0, 0, 0, 200), font=meta_font)
+            draw.text((info_x, y_pos), label, fill=(156, 163, 175, 255), font=meta_font) # Silver-grey Label
             label_w = draw.textlength(label, font=meta_font)
-            # Rendering values using Luxurious Deep Matte Gold for high-end look
-            draw.text((info_x + label_w, y_pos), val, fill=(252, 211, 77, 235), font=meta_font)
+            draw.text((info_x + label_w, y_pos), val, fill=(252, 211, 77, 240), font=meta_font) # Luxurious Yellow-Gold Value
 
-        # Outer canvas boundary profile frame line mapping
+        # Canvas Outer Frame Rim Line
         canvas_frame = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
         cf_draw = ImageDraw.Draw(canvas_frame)
         cf_draw.rectangle([0, 0, CANVAS_W, CANVAS_H], outline=(255, 255, 255, 8), width=3)
         canvas = Image.alpha_composite(canvas, canvas_frame)
 
-        # --- STAGE 5: SAVE EXPORT LOGIC BUFFER ---
+        # --- STAGE 6: SAVE EXPORT LOGIC BUFFER ---
         out = CACHE_DIR / f"{videoid}_final.png"
         canvas.save(out, quality=98, optimize=True)
 
